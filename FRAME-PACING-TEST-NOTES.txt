@@ -1,0 +1,62 @@
+MirrorDeck 1.0.28 - frame-pacing test build
+
+This is a personal portable test build, not a guarantee of perfect pacing on
+every capture device, monitor, driver, or ReShade configuration.
+
+CHANGES
+- Presentation runs on a dedicated worker instead of a Windows Forms timer.
+- DXGI frame-latency waits and monotonic high-resolution deadlines control
+  rendering without a busy loop. The DX11 fallback now uses flip presentation.
+- Captured frames carry timestamps and dimensions through a bounded queue.
+  Buffering now actually buffers frames; low-latency mode selects the newest.
+- Windows Graphics Capture uses a three-slot asynchronous GPU readback ring,
+  nonblocking maps, and pooled CPU buffers. This is NOT a zero-copy GPU-only
+  pipeline: capture still reads back and uploads to the preview renderer.
+- Settings and resize redraws do not require restarting capture. Swap-chain
+  resizing is debounced to reduce repeated ReShade resource rebuilds.
+- Preview shutdown keeps the window message loop responsive while the render
+  worker completes; a stuck worker has an isolated-host shutdown timeout.
+- Pacing telemetry separates capture arrivals, render submissions, frame age,
+  CPU render/Present duration, queue drops, and DXGI display refresh steps.
+
+PRESERVATION
+The original portable and a new before-edit backup remain under:
+backups/ (local development workspace)
+The new backup is Before-frame-pacing-20261106-233701, with a SHA256 manifest.
+The test package uses the saved 1.0.26 portable dependency payload and rebuilds
+both application hosts. Your current saved app settings and installed ReShade
+configuration, presets, shaders, add-ons, and DLSS files are retained.
+The installed application is not overwritten. The ReShade runtime is retained
+in this personal test package; do not use it as the public redistribution build.
+
+TESTING
+1. Extract the entire portable folder, then launch MirrorDeck.App.exe.
+2. First compare with your unchanged settings and the same source/display used
+   previously. Let shaders and capture settle before judging steady motion.
+3. For a smoothness-focused comparison, try V-sync on, low-latency mode off,
+   frame buffering 2, and FPS cap 0. This can add about one source-frame of delay.
+   These preferences have NOT been automatically applied to your saved settings.
+4. Test a steady pan for at least a minute, then resize, enter/exit fullscreen,
+   and close/relaunch the preview. Compare with ReShade installed and removed
+   using the existing uninstall control, which keeps add-ons/presets/settings.
+5. Keep MirrorDeck.log from the preview host. Lines beginning with "Pacing:"
+   report percentiles and droppedTotal. Submit intervals and frame age are CPU
+   measurements, not proof of physical display scanout. displayRefreshSteps is
+   the DXGI refresh-count delta: four steps is normal for 60 FPS on a 240 Hz
+   display. Missing statistics must not be interpreted as perfect presentation.
+
+VALIDATION AND LIMITS
+Synthetic DX12 rendering and real Windows Graphics Capture passed resize,
+fullscreen, nonblank-output, and shutdown smoke tests. ReShade and both DLSS
+add-ons loaded successfully in the synthetic smoke test.
+A steady window-capture sample on the local 240 Hz display reached 59.79 FPS,
+with submission p50 16.68 ms / p95 17.23 ms and DXGI refresh steps p50/p95 4.
+This short controlled sample is not a benchmark for all devices or workloads.
+USB validation was blocked by DirectShow returning 0x80070005 (Access denied)
+when starting the Guermok device. Capture-card pacing remains unverified here.
+ReShade can still pause while rebuilding resources/shaders during resize or
+fullscreen transitions. Debouncing reduces rebuilds but does not eliminate
+the add-on's stalls. GPU saturation can also prevent a stable 60 FPS.
+59.94 FPS versus 60 Hz, independently clocked sources, and mismatched display
+refresh rates may require occasional repeats/drops. No scheduler can promise
+perfect cadence across every such combination without additional tradeoffs.

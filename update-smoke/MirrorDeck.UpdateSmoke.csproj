@@ -1,0 +1,3 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>WinExe</OutputType><TargetFramework>net8.0-windows</TargetFramework><AssemblyName>MirrorDeck.App</AssemblyName><RuntimeIdentifier>win-x64</RuntimeIdentifier><PublishSingleFile>true</PublishSingleFile><SelfContained>true</SelfContained><EnableCompressionInSingleFile>true</EnableCompressionInSingleFile><ImplicitUsings>enable</ImplicitUsings></PropertyGroup>
+</Project>

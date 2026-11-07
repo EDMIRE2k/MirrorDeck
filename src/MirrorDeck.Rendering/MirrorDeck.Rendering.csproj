@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>MirrorDeck.Rendering</AssemblyName>
+    <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+  <PropertyGroup>
+    <LangVersion>14.0</LangVersion>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <CheckForOverflowUnderflow>False</CheckForOverflowUnderflow>
+  </PropertyGroup>
+  <PropertyGroup />
+  <ItemGroup />
+  <ItemGroup>
+    <Reference Include="Vortice.Direct3D12"><HintPath>..\..\lib\Vortice.Direct3D12.dll</HintPath></Reference>
+    <Reference Include="Vortice.DXGI"><HintPath>..\..\lib\Vortice.DXGI.dll</HintPath></Reference>
+    <Reference Include="Vortice.DirectX"><HintPath>..\..\lib\Vortice.DirectX.dll</HintPath></Reference>
+    <Reference Include="SharpGen.Runtime"><HintPath>..\..\lib\SharpGen.Runtime.dll</HintPath></Reference>
+    <ProjectReference Include="..\MirrorDeck.Core\MirrorDeck.Core.csproj" />
+  </ItemGroup>
+</Project>

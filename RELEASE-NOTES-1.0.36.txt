@@ -1,0 +1,20 @@
+MirrorDeck 1.0.36
+
+- Removed ReShade installation controls and startup installation prompts.
+- Added native DLSS 5 repeat options: Off (one pass), 2x, 3x, 4x.
+  Off is the default. Extra passes increase processing cost and artifacts;
+  4x exceeds the 60 FPS budget in our RTX 5070 Ti benchmark.
+- Added a dedicated Updates screen with GitHub source information, release
+  notes, download progress, SHA-256 verification, settings-preserving
+  installation, backup and restart. Installs require confirmation.
+- Fresh settings start the first available video device. Remembered
+  devices are restored; missing devices do not silently switch inputs.
+- Preview launch size now fits the monitor, capped at 1280x720 without
+  reducing the configured upscaling or fullscreen resolution.
+- Fixed unreadable tooltips and clipped toolbar icons.
+
+Native DLSS remains RTX-only and experimental. Only the available RTX
+5070 Ti has been hardware-tested. Native NR uses a community-modified
+compatibility runtime, not an official universal-RTX SDK release.
+ReShade is not installed or required; legacy add-ons and presets remain.
+No frame queue/capture scheduler changes in this version.

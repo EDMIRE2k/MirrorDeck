@@ -1,0 +1,64 @@
+MirrorDeck 1.0.29 - low-resolution GPU upscalers
+
+Built on the working 1.0.28 frame-pacing version. The capture backend, frame
+queue, presentation scheduling, and saved timing preferences are unchanged.
+The existing portable version is untouched. Before-edit backup:
+backups/Before-upscalers-20261107-015113 (local development workspace)
+
+NEW IMAGE > SCALING FILTER OPTIONS
+- FSR 1 EASU - edge-adaptive: a general-purpose spatial upscaler for games,
+  with edge-directed reconstruction and built-in deringing. This is AMD's
+  FP32 EASU algorithm, not temporal FSR or frame generation. Works on DX11
+  and DX12 hardware supporting the preview renderer, not only AMD GPUs.
+- Anime line art - Anime4K lite: combines EASU with an adapted Anime4K v0.9
+  luminance-push stage to thin dark outlines in cartoons and stylized games.
+  This is NOT the full Anime4K neural pipeline and does not recover hidden
+  detail or replace individual emulator textures. It can alter thin text and
+  outlines; reduce strength or use plain EASU when those changes are unwanted.
+- Sharp bilinear - pixel art: retains flat pixel interiors with narrow blended
+  boundaries. Most useful at 2x or greater; below 2x it can match bilinear.
+
+USAGE
+Enable image enhancements, select a filter, and adjust Upscale strength.
+All changes apply live without relaunching the preview. Zero strength matches
+bilinear; 100% uses the selected upscaler. Your prior filter stays selected
+until you change it. Existing sharpness and edge-cleaning remain available;
+start with modest sharpening to avoid overprocessing an already sharp image.
+The input must be smaller than the rendered viewport. Native-size and
+downscaled inputs bypass these new upscalers. Enlarging the preview/output
+does not change the capture device's input resolution or frame rate.
+Filters run in the existing GPU pixel pass, before ReShade, with no added
+intermediate image, frame queue, CPU image processing, or model download.
+The CPU emergency fallback uses bilinear instead of these GPU-only filters.
+ReShade, add-ons, presets, shaders, DLSS files, and saved settings are retained.
+This portable includes your existing ReShade runtime for personal testing,
+not for public redistribution. Third-party licenses are included separately.
+
+PERFORMANCE
+Controlled RTX 5070 Ti test, 1280x720 input, 120 measured frames after 30 warmup
+frames per mode. Values below are median upload/render/Present/GPU-fence wall
+time, excluding the DXGI frame-latency wait. They are NOT isolated GPU shader
+timestamps, capture latency measurements, or a guarantee for every machine.
+
+Output          Bilinear    Sharp bilinear    FSR EASU    Anime line art
+1920x1080       0.365 ms    0.362 ms          0.361 ms    0.386 ms
+2560x1440       0.342 ms    0.366 ms          0.401 ms    0.440 ms
+3840x2160       0.385 ms    0.415 ms          0.576 ms    0.660 ms
+
+Small differences can include scheduling and clock variation. The added
+filters are inexpensive in this test, not free. GPU saturation, higher input
+resolutions, and ReShade/DLSS effects may still cause missed frames. Existing
+ReShade resource-rebuild stalls during resize are not changed by this release.
+
+VALIDATION
+DX12 and DX11 image tests check visible filter differences, strength-zero
+equivalence, bypass behavior, bottom-up input, aspect-fit bars, and native-size
+and downscale bypass. Config and preview IPC serialization preserve all new
+values. UI tests cover live strength visibility/binding and 800x540/1120x780
+layouts. Existing ReShade uninstall/preservation regression tests still pass.
+The live preview smoke test switches filters via the settings file watcher,
+resizes, enters/exits fullscreen, and shuts down the presentation worker.
+The anime-mode steady section maintained approximately 60 submissions/second
+at 1440p. This short synthetic test is not capture-card or all-game validation.
+
+See THIRD-PARTY-UPSCALERS.txt for upstream sources, licenses, and adaptations.

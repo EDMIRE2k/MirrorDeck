@@ -1,0 +1,20 @@
+MirrorDeck upscaler notices
+
+AMD FidelityFX Super Resolution 1 - Edge-Adaptive Spatial Upsampling (EASU)
+https://github.com/GPUOpen-Effects/FidelityFX-FSR
+Commit a21ffb8f6c13233ba336352bdff293894c706575
+ffx_a.h and ffx_fsr1.h are embedded unchanged under the MIT license.
+MirrorDeck uses FP32 EASU in a pixel shader, not FSR temporal reconstruction,
+frame generation, or the optional RCAS sharpening stage.
+Full license: licenses/upscalers/FSR-LICENSE.txt
+
+Anime4K v0.9 luminance push, Copyright (c) 2019 bloc97, MIT license
+https://github.com/bloc97/Anime4K/blob/v0.9/hlsl/Anime4K_Push.hlsl
+The Anime line art mode adapts ONLY this line-thinning stage: inline luma,
+output-pixel neighbor spacing, a 1/255 noise threshold, bounded correction
+combined with FSR EASU, and a user-adjustable blend. It is not the complete
+Anime4K pipeline, a neural upscaler, or an emulator texture replacement.
+Full license: licenses/upscalers/Anime4K-LICENSE.txt
+
+Sharp bilinear uses texel-phase remapping to approximate integer nearest
+scaling followed by bilinear scaling, without an intermediate texture.

@@ -1,0 +1,107 @@
+MirrorDeck 1.0.36 - GitHub and release setup
+Repository: https://github.com/EDMIRE2k/MirrorDeck
+
+WHAT IS READY
+- github-ready-1.0.36 is a local clone of your existing repository with
+  source, tests, packaging files and this guide. Nothing was pushed.
+- MirrorDeck-1.0.36-win-x64.zip is the clean-default portable release.
+- MirrorDeck-1.0.36-BuildInputs-PRIVATE.zip contains the local build
+  dependencies. Keep it private; do not upload it as repository source.
+- The local test folder preserves your prior settings separately from
+  the clean release ZIP. Do not publish your personal test folder.
+
+BEFORE PUBLICATION
+Review redistribution rights for every bundled dependency, especially
+the community-modified NR runtime, NVIDIA models and third-party add-ons.
+The repository's MIT license covers your own code, not all bundled DLLs.
+The clean ZIP is a release candidate, not a legal clearance. No ReShade
+proxy or installer is included. Legacy add-ons/presets are retained.
+Review git diff and the ZIP for private data before publishing.
+
+PUBLISH SOURCE (GITHUB DESKTOP)
+1. Add the existing local repository github-ready-1.0.36 to GitHub Desktop.
+2. Review the changed files. Do not add build inputs, DLLs, models, settings,
+   logs, screenshots, backups, artifacts or portable ZIPs. .gitignore
+   excludes these. Keep the existing LICENSE from your repository.
+3. Commit with a message such as "MirrorDeck 1.0.36 native NR and updates".
+4. Push origin/main after reviewing. The repository is already public.
+
+PUBLISH THE PORTABLE
+1. Open https://github.com/EDMIRE2k/MirrorDeck/releases/new
+2. Create tag v1.0.36 on the source commit you just pushed.
+3. Title: MirrorDeck 1.0.36. Use RELEASE-NOTES-1.0.36.txt for the description.
+4. Attach MirrorDeck-1.0.36-win-x64.zip and its .sha256 file.
+5. Save as a draft while checking the asset. When ready, publish as a
+   stable release and mark it Latest. Do not mark it prerelease for the
+   stable updater. GitHub's auto-generated source ZIP is NOT the app.
+6. Check that the GitHub asset digest is sha256:<64 hexadecimal digits>.
+   The updater refuses to install assets without a matching digest.
+7. Open Updates in MirrorDeck. 1.0.36 should report up to date. To test
+   an offered upgrade, publish a genuinely newer build (e.g. 1.0.37).
+
+Do not commit the portable ZIP to Git. GitHub blocks individual Git
+files over 100 MiB; use release assets for binaries:
+https://docs.github.com/en/repositories/working-with-files/managing-large-files/about-large-files-on-github
+Release publishing guide:
+https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository
+Release API and digest fields:
+https://docs.github.com/en/rest/releases/releases#get-the-latest-release
+
+BUILD FROM THE SOURCE CLONE
+Install PowerShell 7, .NET 10 SDK (targets .NET 8), CMake 3.24 or newer,
+and Visual Studio 2022 Build Tools with Desktop development with C++ and
+Windows SDK. Use an x64 developer shell with cmake, dotnet and MSVC on PATH.
+Extract the PRIVATE build-input archive into the clone: it supplies lib,
+native/vendor and artifacts/NR-runtime-verified. These stay gitignored.
+Extract the clean portable ZIP elsewhere as a self-contained template.
+Then, from the clone:
+
+pwsh -File build-portable.ps1 -TemplateDirectory C:\Build\MirrorDeck-template -OutputDirectory C:\Build\MirrorDeck-1.0.36-win-x64 -CleanDefaults
+dotnet run --project update-tests/MirrorDeck.UpdateTests.csproj -c Release
+dotnet build tests/MirrorDeck.RecoveryTests.csproj -c Release
+dotnet build pacing-tests/MirrorDeck.PacingTests.csproj -c Release
+
+The recovered project currently references the exact local lib DLLs;
+there is not yet a dependency-free public CI build. The private inputs
+and a portable template are required. Preserve their license notices.
+
+NEXT VERSION
+Update App and PreviewHost Properties/AssemblyInfo.cs FileVersion and
+InformationalVersion; keep the existing AssemblyVersion for compatibility.
+Update the output folder/version in build-portable.ps1 and its generated
+MirrorDeck.release.json. The tag, manifest and exact asset filename must
+agree: v1.0.37, version 1.0.37, MirrorDeck-1.0.37-win-x64.zip, for example.
+Package the folder with its manifest, compute SHA-256, test and publish.
+
+UPDATER BEHAVIOR AND RECOVERY
+Only stable releases in EDMIRE2k/MirrorDeck are used. Checking at startup
+is enabled for fresh settings and can be disabled in Updates. It does
+not download or install without user action. Downloads use HTTPS and
+only github.com and release-assets.githubusercontent.com. Metadata uses
+api.github.com. No login, token or telemetry is sent; GitHub sees the
+normal request IP and MirrorDeck user agent. URLs are visible in Updates.
+Signed CDN query strings are omitted from the displayed connection URL.
+
+The asset size and SHA-256 are verified before it becomes installable.
+The worker re-verifies the same locked archive, validates paths and the
+manifest, waits for the app to close, stages the new directory, retains
+existing settings, configs, INIs, add-ons, shaders and external proxies,
+and retains a complete sibling .backup-* directory. Installed storage
+mode stays installed; portable mode stays portable. No rollback copy is
+automatically deleted. Allow enough free disk space for package, extracted
+payload, staging copy and original application. Linked folders are rejected.
+
+Failed downloads leave the running app alone. If installation fails, the
+previous application is retained/restored where possible. Logs are under
+%LOCALAPPDATA%\MirrorDeck\Updates\<id>\update-result.json.
+To roll back, close both processes, rename the current app folder, and
+rename the sibling .backup-* folder to the original name. Keep both copies
+until you have checked settings. The updater does not yet code-sign its
+packages: the digest checks integrity, not independent publisher identity.
+Trust still depends on your GitHub account and release assets. Enable 2FA.
+
+VERIFICATION SCOPE
+Automated package, checksum, unsafe-path, source restriction, defaults,
+settings preservation, WPF layout and native GPU tests run locally.
+There is no public stable release yet, so a production online upgrade
+cannot be demonstrated until a later version is published.

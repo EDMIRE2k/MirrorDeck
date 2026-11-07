@@ -1,0 +1,268 @@
+MirrorDeck 1.0.36 - native Neural Rendering / updates
+
+1.0.36 CHANGES
+Removed ReShade installation controls and startup installation prompts.
+Preserved compatibility with existing external ReShade installations.
+Added optional repeated NR passes: Off (single pass), 2x, 3x and 4x.
+Each pass uses an independent temporal feature; guides are shared and
+the final source-detail resolve happens once. Pass changes reset histories.
+RTX 5070 Ti, 720p NR work size, 1080p input, 4K surface, GPU-complete:
+2x median 10.91 ms / p95 11.79 ms; 3x 14.12 / 15.25; 4x 17.85 / 20.42.
+4x does NOT maintain 60 FPS in this test. Single pass remains the default.
+These synthetic timings are not a guarantee for games or other GPUs.
+DirectX debug validation passed without errors/corruption.
+
+Added verified GitHub updates, smaller monitor-fitted launch size,
+fresh-install auto-start, readable tooltips and centered toolbar icons.
+See GITHUB-SETUP.txt for publishing and update security details.
+
+Earlier release notes follow; historical ReShade installation buttons
+described below are no longer present in 1.0.36.
+
+1.0.35 NATIVE NEURAL RENDERING (EXPERIMENTAL)
+DLSS 4.5 and DLSS 5 only appear when the selected high-performance D3D12
+adapter is an NVIDIA RTX. Both processes share the adapter-selection policy.
+Imported non-RTX profiles fall back to FSR EASU. The preview checks again
+before attempting NGX; unsupported drivers/runtime failures keep rendering.
+
+DLSS 5 is a standalone neural enhancement filter, not DLSS Super Resolution.
+It runs the NR model at the selected working height (720p default), restores
+source detail at capture resolution, then uses FSR EASU for presentation.
+Motion is estimated with NVIDIA Optical Flow; depth is a flat guide. This
+does not provide engine geometry, true depth, or engine-quality motion.
+Intensity, style, local tone/structure, skin structure, automatic mask,
+UI correction, color strength and blend update live. Intensity 0 skips
+evaluation but keeps resources ready. Preset/work-size changes rebuild
+processing resources and may briefly interrupt presentation, not capture.
+Preset hints are experimental; a runtime may ignore them. This SDR path
+does not expose inactive HDR/paper-white/global-tone controls as functional.
+
+The native NR runtime is the COMMUNITY-MODIFIED 310.8 SF-v2 compatibility
+build, not an NVIDIA-signed universal-RTX release. It is intended for RTX
+20/30/40/50 support; only the available RTX 5070 Ti has been tested here.
+Driver, VRAM and GPU speed still matter. No all-GPU 60 FPS guarantee.
+Source: https://github.com/RankFTW/rhi-repo/releases/tag/dlssnr-310.8.SF-v2
+Runtime SHA256:
+6EB209E764F39872625DEBD6ABAF45E2BB6322F6F270F781F70C059AE30B3927
+Archive SHA256:
+1DA35941894994EB087E017577829E492454E9BAE3A6A9397027069CEB74955C
+The runtime is isolated under PreviewHost/NativeDLSS. The older ReShade
+runtime/model, all add-ons, presets and configuration remain untouched.
+No ReShade proxy is installed by default. Native DLSS bypasses processing
+when a ReShade proxy is loaded to avoid competing NGX ownership.
+Parameter-contract reference and MIT notice: licenses/native-dlss.
+
+1.0.35 SETTINGS EXPERIENCE
+Capture + Audio, Image, Display, Profiles, Advanced. Preview open/stop,
+restart, mute, fullscreen and screenshot actions remain accessible.
+Image sliders publish during adjustment; the preview observes atomic file
+replacement and retries without blocking the UI thread. Settings autosave
+atomically. Closed previews stay closed until explicitly opened; changing
+source/format restarts an already-open preview automatically. Preview
+window preferences are separate from the main settings-window geometry.
+The capture scheduler and frame queue are unchanged from 1.0.34.
+
+1.0.35 VERIFICATION (RTX 5070 Ti)
+61 UI/settings/uninstall regression checks passed, including simulated
+AMD, Intel, GTX and RTX policies, profile fallback, atomic overlapping saves,
+closed-preview behavior and scrollable controls at 1120x780 and 800x540.
+The existing 75 native-SR GPU checks, static menu and text-transition tests
+pass. SR 1080p -> 4K M/Medium: median 4.32 ms, p95 4.93 ms in the short test.
+Native NR at 720p working resolution, 1080p input, 4K final surface:
+median 5.07 ms, p95 5.93 ms including CPU submission and GPU completion.
+NR intensity-zero source matching, live styles/work sizes, repeated SR/NR
+switches and D3D12 debug-layer validation passed (no errors/corruption).
+Synthetic 60 Hz capture with NR held approximately 60 submitted FPS after
+warm-up through fullscreen and live atomic-settings updates. First NR
+initialization took about 1.5 seconds; this is not steady-state rendering.
+Optional ReShade loaded successfully in a separate fixture and native NGX
+was bypassed, including resize/fullscreen and shutdown (32 pacing checks).
+The self-contained portable launched and shut down successfully in an
+isolated fixture. These tests do not establish scanout perfection or
+performance/driver compatibility on every RTX generation.
+
+Earlier release notes follow.
+
+1.0.34 FULLSCREEN / DETAIL QUALITY
+Native DLSS now bypasses the processing-height cap for its final display
+surface as well as its neural output. This avoids reconstructing 4K, then
+shrinking it to a capped backbuffer and stretching it back to fullscreen.
+Other filters and ReShade still respect the saved processing-height cap.
+Preview window size follows resize/fullscreen; fixed 1440p/4K modes retain
+their selected processing dimensions. Diagnostics now include surface=WxH
+alongside the actual DLSS input/output dimensions.
+
+The user's 1.0.33 log already showed real 1920x1080 -> 3840x2160 DLSS;
+there was no evidence it was stuck at the pre-fullscreen DLSS size. Image
+softness also came from conservative spatial protection, not just sizing.
+Protected text/detail now uses AMD FSR 1 EASU edge-adaptive reconstruction
+instead of bilinear scaling. This is a hybrid protection path, not a change
+to NVIDIA's neural model. It runs inside the existing stabilization pass,
+without new textures or frame buffering, but adds some shader work.
+Motion protection uses the reprojected guide error/confidence rather than
+unconditionally rejecting any pixel that changed at the same screen position.
+This leaves correctly tracked moving content available to DLSS. Unreliable
+history and narrow-stroke protection remain active; sharpness is separate.
+
+75 native GPU checks cover full 1080p, 1440p and 4K backbuffers with a
+deliberate 720p cap, fixed/dynamic DLSS targets, models, motion quality and
+live controls. D3D12 debug layer: no errors/corruption. Menu-transition tests
+retain zero lost bright strokes against the original bilinear reference;
+shape error is checked against EASU, the new intended protected reconstruction.
+Static-menu wobble, moving content and one-code-value fades are also checked.
+
+For a 1440p monitor, Current monitor size avoids a second resize from 4K
+back down to 1440p. A 4K processing target cannot turn that monitor into a
+native 4K display, nor restore genuine detail absent from the captured game.
+This remains an experimental captured-video integration, not engine DLSS.
+The previous build and all settings/add-ons were backed up before changes.
+
+1.0.33 MODEL / MOTION / DETAIL CONTROLS
+Image now includes DLSS model: Auto, M, K, and L. M remains the default,
+including for older configs. Auto follows the actual processing ratio:
+M for Performance, L for Ultra Performance, K for Quality/Balanced/DLAA.
+K is the DLSS 4 transformer; M and L are DLSS 4.5. L is not universally
+better than M. Model selection sets NGX preset hints, not arbitrary DLL
+replacement. Diagnostics report the requested effective preset.
+
+Motion estimation: Medium retains the prior NVIDIA Optical Flow setting;
+High uses its slow/best-quality preset and may reduce FPS on slower GPUs.
+Changing model or motion quality drains outstanding GPU work and rebuilds
+the processing resources/history. This can briefly pause preview but does
+not restart capture or change the selected device or source format.
+
+Text / detail protection: 100% preserves the 1.0.32 behavior. Lower values
+reduce the narrow-stroke bias toward source-based spatial scaling, allowing
+more DLSS reconstruction with a greater risk of text breakup. Motion-cost,
+reprojection and scene-change safeguards stay active. Changes release held
+static history live without reallocating resources. Sharpness is separate.
+All controls persist in settings/configs and propagate through preview IPC.
+No new per-frame passes, textures or buffering are added by these controls.
+
+1.0.33 VERIFICATION
+55 native GPU checks include every K/M/L and medium/high combination,
+Auto ratio selection, live protection changes on held static content,
+invalid-value defaults and 1080p -> 4K processing. The D3D12 debug layer
+reported no errors or corruption. Default menu/stroke stability tests
+remain unchanged; 41 settings/UI/uninstall regression checks also pass.
+Controls were visually checked at 1120x780 and 800x540 with scrolling.
+Fullscreen / live-settings smoke testing maintained approximately 60
+submissions per second after warm-up; this is not measured scanout.
+
+RTX 5070 Ti, 1080p -> 4K, synthetic input, D3D12 debug layer, median
+CPU wait/upload/GPU/Present wall time (not isolated GPU or input latency):
+  M: Medium 4.47 ms; High 5.06 ms
+  K: Medium 3.90 ms; High 4.66 ms
+  L: Medium 5.01 ms; High 5.79 ms
+These short tests do not prove improved visual quality or guarantee a
+frame rate on other hardware. Default M / Medium / 100% is unchanged.
+
+1.0.32 TEXT / SHARPNESS
+Narrow high-contrast strokes bias DLSS toward current-frame color.
+The stabilized output uses source-based spatial scaling in these regions
+and where history/motion is unreliable, preventing malformed glyphs from
+being accumulated and then frozen. Protection is dilated to cover stroke
+edges and takes effect on the first transition frame. This is conservative
+detail protection, not OCR or a semantic HUD mask: other fine textures may
+also receive spatial scaling, trading neural reconstruction for fidelity.
+DLSS still reconstructs the remaining regions; it is not globally disabled.
+
+Image -> DLSS sharpness is a separate live 0-100% output-sharpening control.
+It uses the existing MirrorDeck GPU presentation pass, not NVIDIA's
+deprecated NGX sharpening parameter. It does not rebuild DLSS or add a
+frame buffer. 0% is the default for older configurations. General sharpness
+is retained for other filters; it is hidden while native DLSS is selected.
+DLSS sharpness is saved in settings/configurations and preview IPC.
+
+1.0.31 STABILITY FIX
+Removed synthetic Halton jitter from already-rasterized capture frames.
+Stationary input neighborhoods receive zero motion vectors instead of
+ambiguous optical-flow estimates. A GPU stabilization pass allows eight
+unchanged frames to settle, then holds that region's reconstructed color.
+Any source-pixel change in its neighborhood releases it immediately; slow
+fades are not classified as static. Moving regions continue through DLSS.
+This adds one output-sized FP16 history texture (about 63 MiB at 4K) and a
+small compute pass, not another frame of buffering. The capture scheduler,
+frame pacing, ReShade policy and user settings are unchanged.
+
+This portable does NOT include the ReShade runtime. All existing add-ons,
+shaders, presets, models and settings are preserved. ReShade remains an
+optional download through the ReShade / DLSS 5 tab; uninstall preserves
+those files. Existing scaler and enhancement preferences are not changed.
+
+NATIVE DLSS 4.5
+In Image, enable image enhancements and select
+"DLSS 4.5 - native RTX (experimental)" as the scaling filter.
+Choose DLSS output resolution independently of the device input mode:
+1080p, 1440p, 4K, preview-window size, current-monitor size, or input size
+(DLAA). For example, keep the capture card at 1920x1080 and choose 4K to
+produce a 3840x2160 DLSS image. Fixed targets remain fixed when resizing
+the preview; monitor mode follows the monitor containing the preview.
+Aspect ratio is preserved inside the chosen target. The final preview
+still obeys its fit/crop/stretch layout. Changes apply live and are saved
+with settings/configs. Selecting a smaller target bypasses DLSS.
+Native DLSS overrides the processing cap for both its intermediate image
+and the final preview surface. Other filters / ReShade retain the cap.
+
+The DX12 renderer calls NVIDIA NGX Super Resolution directly, requesting
+the selected preset (M by default). NVIDIA Optical Flow estimates motion between captured frames;
+a GPU shader supplies unjittered color, generates a rejection mask, and
+supplies flat depth. This is not an in-game integration: captured video
+has no true scene depth or engine motion vectors, and resampling cannot
+recover original subpixel samples. Expect possible ghosting or softness,
+especially on fine text, fast motion, cuts, occlusion and compression.
+No frame generation, ray reconstruction or native DLSS 5 is included.
+
+An RTX GPU with supported NVIDIA Optical Flow, NGX and DX12 drivers is
+required. Unsupported hardware or missing files fall back to bilinear;
+the preview diagnostics/log reports the reason. Re-selecting the filter
+after switching away retries initialization. Native DLSS is opt-in.
+
+REShade / DLSS 5
+Native DLSS and this bundled ReShade/DLSS 5 add-on version are separate
+paths. With ReShade loaded, native DLSS is bypassed and ReShade controls
+DLSS 5. The tested combination intercepted native NGX calls and caused
+feeder conflicts, so simultaneous native DLSS + ReShade is blocked.
+Use the built-in uninstall button, then relaunch, to return to native
+DLSS. No add-on settings are rewritten to force compatibility.
+
+PERFORMANCE / LIMITATIONS
+On an RTX 5070 Ti, a warmed-up static 720p test with the D3D12 debug layer
+measured approximately 2.14 ms at 1080p and 2.38 ms at 1440p, versus about
+0.46-0.55 ms for bilinear, with the new sharpness control at zero.
+These are CPU wait/upload/GPU/Present wall times, NOT isolated shader
+timings or measured end-to-end input latency. Initialization and changes
+to source/output dimensions rebuild the feature and can briefly pause.
+Native DLSS adds GPU load; 60 FPS is not guaranteed on every RTX card.
+The existing pacing scheduler is unchanged. HDR accuracy is not validated;
+this native path processes the existing SDR BGRA capture input.
+
+Verification includes direct GPU pixel readback, aspect-fit/fill and
+integer layout, bottom-up sources, live bypass/re-enable, resizing,
+fullscreen, missing-runtime fallback, and D3D12 debug-layer checks.
+Temporal tests reproduce the original problem on a stationary menu and
+a menu beside moving content: mean frame-to-frame menu changes dropped
+from about 2.21 to zero on an 8-bit scale after settling. Moving content
+and one-code-value fades are checked separately to prevent frozen output.
+This is an experimental portable for testing, not a universal quality or
+compatibility guarantee. The prior 1.0.33 portable is unchanged.
+Small-font transition tests compare the visible strokes against current
+source scaling. Lost-stroke pixels dropped from about 35% on the first
+transition frame in 1.0.31 to zero in the synthetic test, and stayed at
+zero after settling. This does not guarantee every game or font is perfect.
+Live sharpness, persistence, independence from other scalers, and invalid
+value handling are tested with direct GPU output readback.
+
+DEPENDENCIES
+NVIDIA DLSS SDK: https://github.com/NVIDIA/DLSS
+Pinned commit: 9981c6350dc58c0ce21f024fd65e31e851c31689
+Runtime: NVIDIA-signed nvngx_dlss.dll 310.8.0.0, preserved from 1.0.29.
+SHA256: C85F971CE023C9F3492FC7455F0B01A24BA18EA39636407A846902C4360B0B7E
+NVIDIA Optical Flow API 5 headers:
+https://github.com/SlimRG/NvidiaOF5
+Pinned commit: 99e8d8eb8f269591e5e4bd5a7f3c248bbbc3a3b9
+The Optical Flow implementation is provided by the installed NVIDIA
+driver; nvofapi64.dll is not redistributed. Applicable vendor license
+notices are included in licenses/native-dlss. This software contains
+source code provided by NVIDIA Corporation. MirrorDeck is not NVIDIA
+software and this integration is not NVIDIA-certified.
